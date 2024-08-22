@@ -1,3 +1,5 @@
+import { Recipe } from './recipe-schema';
+
 export type AutocompleteProps = {
 
     placeholder: {
@@ -5,8 +7,8 @@ export type AutocompleteProps = {
         required: false,
         description: string,
     },
-    fetchSuggestions: (query: string) => Promise<string[]>,
-    dataKey: string,
+    fetchSuggestions: (query: string) => Promise<Recipe[]>,
+    dataKey: keyof Recipe,
     customLoader?: React.ReactNode,
     onSelect: (value: string) => void,
     caching: boolean,
@@ -14,5 +16,5 @@ export type AutocompleteProps = {
     onFocus?: () => void,
     onChange?: (value: string) => void,
     customStyles?: object,
-    staticData?: string[],
+    staticData?: Recipe[],
 };
