@@ -19,7 +19,7 @@ const staticData = [
 ];
 const dataKey: keyof Recipe = 'name';
 const fetchSuggestions = async (query: string) => {
-  const res = await fetch(`https://dummyjson.com/recipes/search?q=mar${query}`);
+  const res = await fetch(`https://dummyjson.com/recipes/search?q=${query}`);
   if (res.ok) {
     const data = await res.json();
     try {
@@ -48,12 +48,18 @@ export function App() {
         dataKey={dataKey}
         fetchSuggestions={fetchSuggestions}
         customLoader={<>Loading..</>}
-        onSelect={(res) => console.log(res)}
-        onBlur={() => console.log('onBlur')}
-        onFocus={() => console.log('onFocus')}
+        onSelect={(res) => {
+           console.log(res) 
+        }}
+        onBlur={() => {
+           console.log('onBlur')
+        }}
+        onFocus={() => {
+          console.log('onFocus')
+        }}
         customStyles={{}}
       />
-      <Routes>
+      {/* <Routes>
         <Route
           path="/"
           element={
@@ -71,7 +77,7 @@ export function App() {
             </div>
           }
         />
-      </Routes>
+      </Routes> */}
       {/* END: routes */}
     </div>
   );

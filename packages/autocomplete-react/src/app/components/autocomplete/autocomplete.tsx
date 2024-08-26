@@ -1,32 +1,43 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AutocompleteProps } from '../../types/autocomplete-props';
 import { Recipe } from '../../types/recipe-schema';
-import debounce from 'lodash.debounce';
+// import debounce from 'lodash.debounce';
 import SuggestionsList from './suggestions-list';
 import './styles.scss';
+import useDebounce from '../../hooks/useDebounce';
 
 export default function Autocomplete(props: AutocompleteProps) {
   const [inputValue, setInputValue] = useState('');
   const [suggestions, setSuggestions] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [isSelectedSuggestion, setIsSelectedSuggestion] = useState(false);
+
+  const debouncedInputValue = useDebounce(inputValue, 500);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    console.log('efron handleInputChange', inputValue,newValue,isSelectedSuggestion);
     if (props.caching) {
       // cache the input value
     }
     if (props.onChange) {
-      props.onChange(e.target.value);
+      props.onChange(newValue);
     }
-    if (e.target.value.length > 0) {
-      props.fetchSuggestions(e.target.value);
+    if (isSelectedSuggestion) {
+      console.log('efron isSelectedValue', newValue);
+      setIsSelectedSuggestion(false);
+      return;
+    }
+    if (newValue.length > 0) {
+      props.fetchSuggestions(newValue);
     } else {
       setSuggestions([]);
     }
   };
 
-  const getSuggestions = async (query: string) => {
+  const getSuggestions = useCallback(async (query: string) => {
     setError(false);
     setLoading(true);
     try {
@@ -43,31 +54,33 @@ export default function Autocomplete(props: AutocompleteProps) {
     } catch (error) {
       setError(true);
       setLoading(false);
+      setIsSelectedSuggestion(false);
       setSuggestions([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [props]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const getSuggestionsDebounced = useCallback(
-    debounce(getSuggestions, 300),
-    []
-  );
-
   useEffect(() => {
-    if (inputValue.length > 0) {
-      getSuggestionsDebounced(inputValue);
-    } else {
+    if (debouncedInputValue.length > 0 && !isSelectedSuggestion) {
+      console.log('efron useEffect', debouncedInputValue);
+      getSuggestions(debouncedInputValue);
+    }
+    else {
       setSuggestions([]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputValue]);
+  }, [debouncedInputValue, getSuggestions, isSelectedSuggestion]);
+
+
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 
   const handleSuggestionsClick = (suggestion: Recipe) => {
     const key = props.dataKey;
-    setInputValue(
-      props.dataKey ? (suggestion[key] as string) : suggestion.name
-    );
+    const selectedValue = props.dataKey ? suggestion[key] : suggestion.name;
+    setIsSelectedSuggestion(true);
+    setInputValue(selectedValue);
+    console.log('efron handleSuggestionsClick', selectedValue,isSelectedSuggestion,inputValue);
     setSuggestions([]);
     props.onSelect(suggestion.name);
   };

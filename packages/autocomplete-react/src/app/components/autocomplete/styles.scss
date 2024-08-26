@@ -43,6 +43,11 @@
 .suggestion-item {
   padding: 10px;
   cursor: pointer;
+  &.highlighted {
+    font-weight: bold;
+    background-color: #9775ff;
+    color: #fff;
+  }
 }
 
 .suggestion-item:hover,
