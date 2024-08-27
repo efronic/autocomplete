@@ -5,6 +5,7 @@ import { Recipe } from '../../types/recipe-schema';
 import SuggestionsList from './suggestions-list';
 import './styles.scss';
 import useDebounce from '../../hooks/useDebounce';
+import useCache from '../../hooks/useCache';
 
 export default function Autocomplete(props: AutocompleteProps) {
   const [inputValue, setInputValue] = useState('');
@@ -14,11 +15,13 @@ export default function Autocomplete(props: AutocompleteProps) {
   const [isSelectedSuggestion, setIsSelectedSuggestion] = useState(false);
 
   const debouncedInputValue = useDebounce(inputValue, 500);
+  console.log('efron debouncedInputValue', debouncedInputValue);
+  const { getCache, setCacheValue } = useCache();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
-    console.log('efron handleInputChange', inputValue,newValue,isSelectedSuggestion);
+    // console.log('efron handleInputChange', inputValue, newValue, isSelectedSuggestion);
     if (props.caching) {
       // cache the input value
     }
@@ -31,35 +34,41 @@ export default function Autocomplete(props: AutocompleteProps) {
       return;
     }
     if (newValue.length > 0) {
-      props.fetchSuggestions(newValue);
+      // props.fetchSuggestions(newValue);
     } else {
       setSuggestions([]);
     }
-  };
+  }, [props, isSelectedSuggestion]);
 
   const getSuggestions = useCallback(async (query: string) => {
     setError(false);
     setLoading(true);
     try {
       let result;
-      if (props.staticData) {
-        result = props.staticData.filter((item) => {
-          return item.name.toLowerCase().includes(query.toLowerCase());
-        });
+      const cachedResult = getCache(query);
+      if (cachedResult) {
+        console.log('efron cachedResult', cachedResult);
+        result = cachedResult;
       } else {
-        result = await props.fetchSuggestions(query);
+        if (props.staticData) {
+          result = props.staticData.filter((item) => {
+            return item.name.toLowerCase().includes(query.toLowerCase());
+          });
+        } else {
+          result = await props.fetchSuggestions(query);
+        }
+        setCacheValue(query, result);
       }
-      // setCache(query, result);
       setSuggestions(result);
     } catch (error) {
       setError(true);
       setLoading(false);
-      setIsSelectedSuggestion(false);
+      // setIsSelectedSuggestion(false);
       setSuggestions([]);
     } finally {
       setLoading(false);
     }
-  }, [props]);
+  }, [props, getCache, setCacheValue]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (debouncedInputValue.length > 0 && !isSelectedSuggestion) {
@@ -70,20 +79,31 @@ export default function Autocomplete(props: AutocompleteProps) {
       setSuggestions([]);
     }
   }, [debouncedInputValue, getSuggestions, isSelectedSuggestion]);
-
+  // useEffect(() => {
+  //   if (debouncedInputValue.length > 0) {
+  //     console.log('efron useEffect', debouncedInputValue);
+  //     getSuggestions(debouncedInputValue);
+  //   }
+  //   else {
+  //     setSuggestions([]);
+  //   }
+  // }, [debouncedInputValue, getSuggestions]);
+  // }, [debouncedInputValue]);
 
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
 
-  const handleSuggestionsClick = (suggestion: Recipe) => {
+  const handleSuggestionsClick = useCallback((suggestion: Recipe) => {
     const key = props.dataKey;
-    const selectedValue = props.dataKey ? suggestion[key] : suggestion.name;
+    const selectedValue = props.dataKey ? suggestion[key] as string : suggestion.name;
     setIsSelectedSuggestion(true);
     setInputValue(selectedValue);
-    console.log('efron handleSuggestionsClick', selectedValue,isSelectedSuggestion,inputValue);
+    console.log('efron handleSuggestionsClick', selectedValue,
+      isSelectedSuggestion,
+      inputValue);
     setSuggestions([]);
     props.onSelect(suggestion.name);
-  };
+  }, [props, inputValue, isSelectedSuggestion]);
 
   return (
     <div className="container">

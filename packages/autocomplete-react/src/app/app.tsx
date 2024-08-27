@@ -19,6 +19,7 @@ const staticData = [
 ];
 const dataKey: keyof Recipe = 'name';
 const fetchSuggestions = async (query: string) => {
+  console.log('efron fetchSuggestions', query);
   const res = await fetch(`https://dummyjson.com/recipes/search?q=${query}`);
   if (res.ok) {
     const data = await res.json();

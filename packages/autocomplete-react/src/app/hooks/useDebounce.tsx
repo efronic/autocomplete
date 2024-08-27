@@ -1,21 +1,22 @@
-import { useState, useEffect } from 'react'
-
+import { useState, useEffect, useCallback } from 'react';
 
 const useDebounce = (value: string, delay = 500) => {
-
+    console.log('efron useDebounce called!', value);
     const [debouncedValue, setDebouncedValue] = useState(value);
 
+    const updateDebouncedValue = useCallback(() => {
+        setDebouncedValue(value);
+    }, [value]);
+
     useEffect(() => {
-        const id = setTimeout(() => {
-            // console.log('efron setting new timeout value', value);
-            setDebouncedValue(value);
-        }, delay);
+        const id = setTimeout(updateDebouncedValue, delay);
+
         return () => {
-            // console.log('efron clearing timeout');
             clearTimeout(id);
         };
-    }, [value, delay]);
-
+    }, [value, delay, updateDebouncedValue]);
+    console.log('efron useDebounce debouncedValue', debouncedValue);
     return debouncedValue;
-}
+};
+
 export default useDebounce;
