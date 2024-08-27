@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AutocompleteProps } from '../../types/autocomplete-props';
 import { Recipe } from '../../types/recipe-schema';
-// import debounce from 'lodash.debounce';
 import SuggestionsList from './suggestions-list';
 import './styles.scss';
 import useDebounce from '../../hooks/useDebounce';
@@ -15,21 +14,16 @@ export default function Autocomplete(props: AutocompleteProps) {
   const [isSelectedSuggestion, setIsSelectedSuggestion] = useState(false);
 
   const debouncedInputValue = useDebounce(inputValue, 500);
-  console.log('efron debouncedInputValue', debouncedInputValue);
   const { getCache, setCacheValue } = useCache();
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
-    // console.log('efron handleInputChange', inputValue, newValue, isSelectedSuggestion);
-    if (props.caching) {
-      // cache the input value
-    }
+
     if (props.onChange) {
       props.onChange(newValue);
     }
     if (isSelectedSuggestion) {
-      console.log('efron isSelectedValue', newValue);
       setIsSelectedSuggestion(false);
       return;
     }
@@ -47,7 +41,6 @@ export default function Autocomplete(props: AutocompleteProps) {
       let result;
       const cachedResult = getCache(query);
       if (cachedResult) {
-        console.log('efron cachedResult', cachedResult);
         result = cachedResult;
       } else {
         if (props.staticData) {
@@ -63,47 +56,30 @@ export default function Autocomplete(props: AutocompleteProps) {
     } catch (error) {
       setError(true);
       setLoading(false);
-      // setIsSelectedSuggestion(false);
+      setIsSelectedSuggestion(false);
       setSuggestions([]);
     } finally {
       setLoading(false);
     }
   }, [props, getCache, setCacheValue]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (debouncedInputValue.length > 0 && !isSelectedSuggestion) {
-      console.log('efron useEffect', debouncedInputValue);
       getSuggestions(debouncedInputValue);
     }
     else {
       setSuggestions([]);
     }
   }, [debouncedInputValue, getSuggestions, isSelectedSuggestion]);
-  // useEffect(() => {
-  //   if (debouncedInputValue.length > 0) {
-  //     console.log('efron useEffect', debouncedInputValue);
-  //     getSuggestions(debouncedInputValue);
-  //   }
-  //   else {
-  //     setSuggestions([]);
-  //   }
-  // }, [debouncedInputValue, getSuggestions]);
-  // }, [debouncedInputValue]);
 
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
 
   const handleSuggestionsClick = useCallback((suggestion: Recipe) => {
     const key = props.dataKey;
     const selectedValue = props.dataKey ? suggestion[key] as string : suggestion.name;
     setIsSelectedSuggestion(true);
     setInputValue(selectedValue);
-    console.log('efron handleSuggestionsClick', selectedValue,
-      isSelectedSuggestion,
-      inputValue);
     setSuggestions([]);
     props.onSelect(suggestion.name);
-  }, [props, inputValue, isSelectedSuggestion]);
+  }, [props]);
 
   return (
     <div className="container">

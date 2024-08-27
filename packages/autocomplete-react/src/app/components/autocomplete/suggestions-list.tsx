@@ -6,7 +6,6 @@ const SuggestionsList = (suggestionsListProps: SuggestionsListProps) => {
   const highlight = suggestionsListProps.highlight;
   const suggestions = suggestionsListProps.suggestions;
   const dataKey = suggestionsListProps.dataKey;
-  // console.log('efron suggestionsListProps', suggestionsListProps);
 
   const getHighlightedText = (text: string, highlight: string) => {
     const parts = text.split(new RegExp(`(${highlight})`, 'gi'));

@@ -12,7 +12,6 @@ const useCache = () => {
             return { ...prevCache, [key]: value };
         });
     }, []);
-    console.log('efron useCache', cache);
     return { getCache, setCacheValue };
 };
 export default useCache;
